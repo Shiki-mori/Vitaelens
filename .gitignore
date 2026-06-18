@@ -25,3 +25,10 @@ replay_pid*
 
 # IDEA
 .idea/
+
+# private
+private/
+
+# deploy
+
+deploy/docker-compose.yml
