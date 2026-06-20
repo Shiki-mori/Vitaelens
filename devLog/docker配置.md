@@ -142,3 +142,99 @@ Environment="HTTPS_PROXY=http://127.0.0.1:8966"
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
+
+# docker管理
+
+docker使用有两种方法：docker compose 和 独立原生 docker 命令。  
+以下均使用docker compose方法。该方法将配置写在文件里。
+
+启动docker：
+
+进入docker-compose.yml所在目录，执行：
+
+```bash
+docker compose up -d
+```
+
+-d表示后台执行。
+
+查看运行状态：
+
+```bash
+docker compose ps
+```
+
+查看容器日志：
+
+```bash
+docker logs -f <container_name>
+```
+
+停止运行：
+
+```bash
+docker compose down
+```
+
+# Mysql
+
+使用dbeaver连接数据库时显示：
+
+```text
+null,  message from server: "Host '172.19.0.1' is not allowed to connect to this MySQL server"
+```
+
+由 Docker 宿主机（或 Docker 网络网关 172.19.0.1）发起的连接请求，被 MySQL 容器内部的用户权限机制给拒绝了。默认情况下，MySQL 的 root 用户通常只允许从 localhost（容器内部）进行连接。
+
+需要先进入mysql容器，修改对应用户的允许访问主机的权限。将 host 从 localhost 改为 % 允许任意 IP。
+
+进入mysql容器：
+
+```bash
+docker exec -it <mysql_container_id> mysql -u root -p
+```
+
+输入root用户密码进入mysql命令行，执行：
+
+```sql
+-- 1. 切换到系统自带的 mysql 数据库
+USE mysql;
+
+-- 2. 查看当前用户的权限配置（可选，用来确认当前 root 的 host 是什么）
+SELECT user, host FROM user;
+
+-- 3. 修改权限：允许 root 用户从任意主机连接（如果你用的是其他账号，把 'root' 换掉）
+-- 注意：如果你的 MySQL 版本是 8.0+，建议直接使用下面的 ALTER 语句；如果是旧版本，可以使用 GRANT
+ALTER USER 'vitaelens'@'%' IDENTIFIED WITH mysql_native_password BY '你的密码';
+
+-- 如果报错，也可以尝试更通用的修改语句：
+-- UPDATE user SET host = '%' WHERE user = 'root' AND host = 'localhost';
+
+-- 4. 刷新权限使修改立即生效
+FLUSH PRIVILEGES;
+
+-- 5. 退出 MySQL
+EXIT;
+```
+
+# 重置docker
+
+停止并删除旧容器：
+
+```bash
+docker compose down
+```
+
+删除旧的数据文件夹：
+
+```bash
+rm -rf ./mysql-data
+rm -rf ./mysql-init
+```
+
+重新启动并初始化：
+
+```bash
+docker compose up -d
+```
+
