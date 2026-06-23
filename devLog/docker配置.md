@@ -158,7 +158,7 @@ docker compose up -d
 
 -d表示后台执行。
 
-查看运行状态：
+查看运行状态(在docker-compose.yml所在目录下执行)：
 
 ```bash
 docker compose ps
@@ -191,7 +191,7 @@ null,  message from server: "Host '172.19.0.1' is not allowed to connect to this
 进入mysql容器：
 
 ```bash
-docker exec -it <mysql_container_id> mysql -u root -p
+docker exec -it vitaelens-mysql mysql -u root -p
 ```
 
 输入root用户密码进入mysql命令行，执行：
@@ -204,7 +204,7 @@ USE mysql;
 SELECT user, host FROM user;
 
 -- 3. 修改权限：允许 root 用户从任意主机连接（如果你用的是其他账号，把 'root' 换掉）
--- 注意：如果你的 MySQL 版本是 8.0+，建议直接使用下面的 ALTER 语句；如果是旧版本，可以使用 GRANT
+-- 注意：如果 MySQL 版本是 8.0+，建议直接使用下面的 ALTER 语句；如果是旧版本，可以使用 GRANT
 ALTER USER 'vitaelens'@'%' IDENTIFIED WITH mysql_native_password BY '你的密码';
 
 -- 如果报错，也可以尝试更通用的修改语句：

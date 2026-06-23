@@ -15,7 +15,7 @@
 - Spring Security
 - JWT
 - MyBatis-Plus
-- MySQL 8.0
+- MySQL 8.0.46
 - Redis 7.2
 - Knife4j 或 Swagger
 - Apache PDFBox
@@ -36,49 +36,45 @@
 
 - Docker Compose
 - Nginx
-- MySQL 8.0
+- MySQL 8.0.46
 - Redis 7.2
 - Spring Boot fat jar 或 Docker 镜像
 
 ## 项目结构
 
-推荐仓库结构如下：
+后端项目结构如下：
 
 ```text
-vitaelens/
-├── vitaelens-backend/
-│   ├── src/main/java/com/vitaelens/
-│   │   ├── VitaeLensApplication.java
-│   │   ├── auth/
-│   │   ├── user/
-│   │   ├── resume/
-│   │   ├── job/
-│   │   ├── analysis/
-│   │   ├── interview/
-│   │   ├── ai/
-│   │   ├── security/
-│   │   ├── common/
-│   │   └── config/
-│   ├── src/main/resources/
-│   │   ├── application.yml
-│   │   ├── application-dev.yml
-│   │   └── mapper/
-│   ├── pom.xml
-│   └── Dockerfile
-├── vitaelens-frontend/
-│   ├── src/
-│   ├── package.json
-│   └── Dockerfile
-├── deploy/
-│   ├── docker-compose.yml
-│   ├── nginx.conf
-│   └── mysql-init/
-├── docs/
-│   ├── api.md
-│   ├── database.md
-│   └── architecture.md
-├── README.md
-└── AGENTS.md
+com.offerlens/
+├── OfferLensApplication.java
+├── config/          -- 配置类（Redis、跨域、线程池、安全）
+├── common/          -- 公共类
+│   ├── Result.java          -- 统一响应体
+│   ├── PageResult.java      -- 分页响应体
+│   └── ErrorCode.java       -- 错误码枚举
+├── exception/       -- 异常处理
+│   ├── BizException.java    -- 业务异常
+│   └── GlobalExceptionHandler.java
+├── auth/            -- 鉴权相关
+│   ├── JwtUtil.java
+│   ├── JwtFilter.java
+│   └── UserContext.java
+├── entity/          -- 数据库实体
+├── mapper/          -- MyBatis Mapper
+├── service/         -- 业务逻辑
+│   └── impl/
+├── controller/      -- 接口层
+├── dto/             -- 请求/响应 DTO
+│   ├── request/
+│   └── response/
+├── ai/              -- AI 调用封装
+│   ├── AiClient.java
+│   └── PromptTemplate.java
+├── task/            -- 异步任务
+│   └── AnalysisTaskExecutor.java
+└── util/            -- 工具类
+    ├── HashUtil.java
+    └── FileUtil.java
 ```
 
 AI 工具生成代码时，必须优先遵循以上结构。除非确有必要，不要引入新的顶层目录。
@@ -348,111 +344,7 @@ AI 调用超时 / JSON 解析失败 / 字段缺失
 | `interview_question` | 面试问题与回答表 |
 | `ai_call_log` | AI 调用日志表 |
 
-### user
-
-核心字段：
-
-- `id`
-- `username`
-- `email`
-- `password_hash`
-- `created_at`
-- `updated_at`
-- `deleted`
-
-### resume
-
-核心字段：
-
-- `id`
-- `user_id`
-- `file_name`
-- `file_type`
-- `file_path`
-- `file_size`
-- `parsed_text`
-- `created_at`
-- `updated_at`
-- `deleted`
-
-### job_description
-
-核心字段：
-
-- `id`
-- `user_id`
-- `title`
-- `company_name`
-- `content`
-- `created_at`
-- `updated_at`
-- `deleted`
-
-### analysis_task
-
-核心字段：
-
-- `id`
-- `user_id`
-- `resume_id`
-- `jd_id`
-- `input_hash`
-- `status`
-- `score`
-- `result_json`
-- `error_message`
-- `retry_count`
-- `started_at`
-- `finished_at`
-- `created_at`
-- `updated_at`
-- `deleted`
-
-### interview_session
-
-核心字段：
-
-- `id`
-- `user_id`
-- `analysis_task_id`
-- `title`
-- `created_at`
-- `updated_at`
-- `deleted`
-
-### interview_question
-
-核心字段：
-
-- `id`
-- `session_id`
-- `question_type`
-- `question`
-- `reference_points`
-- `answer`
-- `feedback_json`
-- `score`
-- `created_at`
-- `updated_at`
-- `deleted`
-
-### ai_call_log
-
-核心字段：
-
-- `id`
-- `user_id`
-- `biz_type`
-- `biz_id`
-- `provider`
-- `model`
-- `prompt_hash`
-- `success`
-- `error_message`
-- `latency_ms`
-- `prompt_tokens`
-- `completion_tokens`
-- `created_at`
+具体表结构存储在 `database/sql/schema.sql` 中。
 
 ## Redis 设计
 
@@ -581,7 +473,7 @@ auth:blacklist:{tokenId}
 
 ```json
 {
-  "code": 40001,
+  "code": 401,
   "message": "未登录或登录已过期",
   "data": null
 }
