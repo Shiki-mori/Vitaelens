@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: vitaelens-backend
+
+  docker:
+    compose:
+      # 指定启动时使用的 compose 文件
+      file: ./deploy/docker-compose.yml
+
+jwt:
+  secret: ${JWT_SECRET:vitaelens-jwt-secret-key-change-in-production}
+  # expiration: 86400000  # 24小时，单位毫秒
+  expiration: 86400000000
