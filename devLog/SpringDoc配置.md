@@ -1,6 +1,8 @@
 ><localhost:8080/swagger-ui/index.html>
 
-在`pom.xml`中添加`swagger`依赖:
+使用springdoc
+
+在`pom.xml`中添加`swagger`相关依赖:
 
 ```xml
 <dependency>
@@ -28,14 +30,13 @@
     <version>2.8.9</version>
 </dependency>
 ```
+
 启用SpringDoc OpenAPI（Swagger UI）  
 作用是生成openAPI文档。
 
 新建一个swagger配置类：[SwaggerConfig.java](../vitaelens-backend/src/main/java/com/phrolova/vitaelensbackend/config/SwaggerConfig.java)。
 
 在[SecurityConfig.java](../vitaelens-backend/src/main/java/com/phrolova/vitaelensbackend/config/SecurityConfig.java)中放行swagger-ui等资源。
-
-
 
 启动spring boot后，  
 Swagger UI:<localhost:8080/swagger-ui/index.html>  
@@ -66,4 +67,82 @@ JSON数据返回：
 
 最终运行时发生冲突。
 
-删除knife4j相关依赖，仅保留springdoc。
+删除knife4j相关依赖，仅保留springdoc，问题解决。
+
+# 使用api注解
+
+>Springdoc是Spring Boot下实现swagger API描述规范 的 自动生成工具。  
+
+>Swagger UI 将生成的Open API文档 进行可视化。
+
+SpringDoc 3.x 对应的注解：
+
+```java
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+```
+
+使用`@Tag`+`@Operation`。
+
+## @Tag
+
+Controller层使用 `@Tag` ，对模块分类。如：
+
+```java
+@RestController
+@RequestMapping("/api/user")
+@Tag(name = "用户模块", description = "用户相关接口")
+public class UserController {
+}
+```
+
+## @Operation
+
+API方法使用`@Operation`，如：
+
+```java
+@Operation(
+    summary = "创建用户",
+    description = "根据用户名和密码创建新用户"
+)
+@PostMapping("/create")
+public UserVO create(@RequestBody UserDTO dto) {
+    return userService.create(dto);
+}
+```
+
+`summary`：接口描述  
+`description`：详细说明
+
+## @Parameter
+
+query/path/header/cookie/body参数使用`@Parameter`，如：
+
+```java
+@Operation(summary = "根据ID查询用户")
+@GetMapping("/{id}")
+public UserVO getUser(
+        @Parameter(description = "用户ID") 
+        @PathVariable Long id
+) {
+    return userService.getById(id);
+}
+```
+
+## @Schema
+
+字段使用`Schema`，如：
+
+```java
+@Data
+public class UserDTO {
+
+    @Schema(description = "用户名", example = "alice")
+    private String username;
+
+    @Schema(description = "密码", example = "123456")
+    private String password;
+}
+```
