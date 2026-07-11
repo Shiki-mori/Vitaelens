@@ -4,7 +4,7 @@
 
 `VitaeLens` 是一个面向校招学生的 AI 简历优化与模拟面试系统。用户上传 PDF 或 DOCX 简历，输入目标岗位 JD，系统解析简历内容，调用大模型生成结构化分析结果，并进一步生成模拟面试题和回答反馈。项目以 Java 后端能力为核心，AI 能力作为业务场景和差异化入口。
 
-项目的主要目标不是做一个简单的“AI 问答网页”，而是实现一个具备工程完整性的 Spring Boot 后端项目，重点体现异步任务、结构化 AI 输出、缓存、限流、鉴权、文件解析、数据持久化和 Docker 部署能力。
+项目的主要目标是实现一个具备工程完整性的 Spring Boot 后端项目，重点体现异步任务、结构化 AI 输出、缓存、限流、鉴权、文件解析、数据持久化和 Docker 部署能力。
 
 ## 技术栈
 
@@ -17,7 +17,7 @@
 - MyBatis-Plus
 - MySQL 8.0.46
 - Redis 7.2
-- Knife4j 或 Swagger
+- Swagger
 - Apache PDFBox
 - Apache POI
 - Jackson
@@ -45,8 +45,8 @@
 后端项目结构如下：
 
 ```text
-com.offerlens/
-├── OfferLensApplication.java
+com.vitaelensbackend/
+├── VitaeLensApplication.java
 ├── config/          -- 配置类（Redis、跨域、线程池、安全）
 ├── common/          -- 公共类
 │   ├── Result.java          -- 统一响应体
@@ -99,16 +99,16 @@ module/
 
 各层职责如下：
 
-| 层级 | 职责 |
-|---|---|
+| 层级         | 职责                      |
+|------------|-------------------------|
 | Controller | 接收 HTTP 请求，做参数校验，返回统一响应 |
-| Service | 编排业务流程，处理事务，调用外部服务 |
-| Mapper | 访问数据库，不写业务逻辑 |
-| Entity | 对应数据库表结构 |
-| DTO | 接收前端请求参数 |
-| VO | 返回前端展示数据 |
-| Enum | 表示状态、类型、错误分类等固定值 |
-| Client | 封装第三方 API 或大模型调用 |
+| Service    | 编排业务流程，处理事务，调用外部服务      |
+| Mapper     | 访问数据库，不写业务逻辑            |
+| Entity     | 对应数据库表结构                |
+| DTO        | 接收前端请求参数                |
+| VO         | 返回前端展示数据                |
+| Enum       | 表示状态、类型、错误分类等固定值        |
+| Client     | 封装第三方 API 或大模型调用        |
 
 Controller 不允许直接调用 Mapper。Mapper 不允许调用 Service。AI 调用、文件解析、Redis 操作必须封装在独立组件中，不允许散落在 Controller 中。
 
@@ -334,15 +334,15 @@ AI 调用超时 / JSON 解析失败 / 字段缺失
 
 第一版至少包含以下表：
 
-| 表名 | 说明 |
-|---|---|
-| `user` | 用户表 |
-| `resume` | 简历表 |
-| `job_description` | 岗位 JD 表 |
-| `analysis_task` | 简历分析任务表 |
-| `interview_session` | 模拟面试场次表 |
+| 表名                   | 说明       |
+|----------------------|----------|
+| `user`               | 用户表      |
+| `resume`             | 简历表      |
+| `job_description`    | 岗位 JD 表  |
+| `analysis_task`      | 简历分析任务表  |
+| `interview_session`  | 模拟面试场次表  |
 | `interview_question` | 面试问题与回答表 |
-| `ai_call_log` | AI 调用日志表 |
+| `ai_call_log`        | AI 调用日志表 |
 
 具体表结构存储在 `database/sql/schema.sql` 中。
 
@@ -361,12 +361,12 @@ auth:blacklist:{tokenId}
 
 说明：
 
-| Key | 用途 |
-|---|---|
-| `analysis:result:{inputHash}` | 缓存简历和 JD 的分析结果 |
-| `rate:analysis:user:{userId}` | 限制用户创建分析任务频率 |
-| `rate:interview:user:{userId}` | 限制用户提交面试回答频率 |
-| `auth:blacklist:{tokenId}` | 可选，用于登出后的 token 黑名单 |
+| Key                            | 用途                  |
+|--------------------------------|---------------------|
+| `analysis:result:{inputHash}`  | 缓存简历和 JD 的分析结果      |
+| `rate:analysis:user:{userId}`  | 限制用户创建分析任务频率        |
+| `rate:interview:user:{userId}` | 限制用户提交面试回答频率        |
+| `auth:blacklist:{tokenId}`     | 可选，用于登出后的 token 黑名单 |
 
 分析结果缓存建议设置过期时间，例如 7 天。限流 Key 根据业务要求设置 60 秒或 1 小时过期时间。
 
@@ -417,44 +417,44 @@ auth:blacklist:{tokenId}
 
 ### 认证
 
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| `POST` | `/api/auth/register` | 注册 |
-| `POST` | `/api/auth/login` | 登录 |
-| `GET` | `/api/users/me` | 查询当前用户 |
+| 方法     | 路径                   | 说明     |
+|--------|----------------------|--------|
+| `POST` | `/api/auth/register` | 注册     |
+| `POST` | `/api/auth/login`    | 登录     |
+| `GET`  | `/api/users/me`      | 查询当前用户 |
 
 ### 简历
 
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| `POST` | `/api/resumes/upload` | 上传简历 |
-| `GET` | `/api/resumes` | 查询简历列表 |
-| `GET` | `/api/resumes/{id}` | 查询简历详情 |
-| `DELETE` | `/api/resumes/{id}` | 删除简历 |
+| 方法       | 路径                    | 说明     |
+|----------|-----------------------|--------|
+| `POST`   | `/api/resumes/upload` | 上传简历   |
+| `GET`    | `/api/resumes`        | 查询简历列表 |
+| `GET`    | `/api/resumes/{id}`   | 查询简历详情 |
+| `DELETE` | `/api/resumes/{id}`   | 删除简历   |
 
 ### 岗位 JD
 
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| `POST` | `/api/jobs` | 创建岗位 JD |
-| `GET` | `/api/jobs` | 查询岗位 JD 列表 |
-| `GET` | `/api/jobs/{id}` | 查询岗位 JD 详情 |
-| `DELETE` | `/api/jobs/{id}` | 删除岗位 JD |
+| 方法       | 路径               | 说明         |
+|----------|------------------|------------|
+| `POST`   | `/api/jobs`      | 创建岗位 JD    |
+| `GET`    | `/api/jobs`      | 查询岗位 JD 列表 |
+| `GET`    | `/api/jobs/{id}` | 查询岗位 JD 详情 |
+| `DELETE` | `/api/jobs/{id}` | 删除岗位 JD    |
 
 ### 分析任务
 
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| `POST` | `/api/analysis/tasks` | 创建分析任务 |
-| `GET` | `/api/analysis/tasks/{id}` | 查询任务状态和结果 |
-| `GET` | `/api/analysis/tasks` | 查询历史分析任务 |
+| 方法     | 路径                         | 说明        |
+|--------|----------------------------|-----------|
+| `POST` | `/api/analysis/tasks`      | 创建分析任务    |
+| `GET`  | `/api/analysis/tasks/{id}` | 查询任务状态和结果 |
+| `GET`  | `/api/analysis/tasks`      | 查询历史分析任务  |
 
 ### 模拟面试
 
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| `POST` | `/api/interviews/sessions` | 创建面试场次 |
-| `GET` | `/api/interviews/sessions/{id}` | 查询面试场次 |
+| 方法     | 路径                                      | 说明        |
+|--------|-----------------------------------------|-----------|
+| `POST` | `/api/interviews/sessions`              | 创建面试场次    |
+| `GET`  | `/api/interviews/sessions/{id}`         | 查询面试场次    |
 | `POST` | `/api/interviews/questions/{id}/answer` | 提交回答并获取反馈 |
 
 ## 统一响应格式
@@ -502,7 +502,7 @@ Controller 返回值不应直接暴露 Entity。必须通过 VO 返回前端需�
 简历上传规则：
 
 - 只允许 PDF 和 DOCX
-- 单文件大小建议限制为 5 MB
+- 单文件大小建议限制为 10 MB
 - 文件名必须重新生成，不能直接使用用户上传文件名作为存储文件名
 - 文件路径不应暴露给前端
 - 删除简历时，需要删除数据库记录，并尽量删除对应文件
@@ -540,8 +540,8 @@ AI 相关接口必须有限流设计，因为它们涉及外部接口成本。
 
 建议第一版规则：
 
-| 接口 | 限制 |
-|---|---|
+| 接口     | 限制            |
+|--------|---------------|
 | 创建分析任务 | 每个用户每分钟最多 3 次 |
 | 创建面试场次 | 每个用户每分钟最多 3 次 |
 | 提交面试回答 | 每个用户每分钟最多 5 次 |
@@ -585,15 +585,15 @@ AI 相关接口必须有限流设计，因为它们涉及外部接口成本。
 
 第一版页面控制在较小范围：
 
-| 页面 | 说明 |
-|---|---|
-| 登录页 | 登录和注册 |
-| 首页 | 项目介绍和入口 |
-| 简历管理页 | 上传、查看、删除简历 |
-| 岗位 JD 页 | 创建和管理目标岗位 |
-| 分析任务页 | 创建分析任务，展示任务状态 |
-| 分析结果页 | 展示评分、问题、建议和技能缺口 |
-| 模拟面试页 | 展示问题、提交回答、查看反馈 |
+| 页面      | 说明              |
+|---------|-----------------|
+| 登录页     | 登录和注册           |
+| 首页      | 项目介绍和入口         |
+| 简历管理页   | 上传、查看、删除简历      |
+| 岗位 JD 页 | 创建和管理目标岗位       |
+| 分析任务页   | 创建分析任务，展示任务状态   |
+| 分析结果页   | 展示评分、问题、建议和技能缺口 |
+| 模拟面试页   | 展示问题、提交回答、查看反馈  |
 
 前端不承担核心业务判断。鉴权、数据隔离、任务状态流转和限流必须由后端保证。
 
