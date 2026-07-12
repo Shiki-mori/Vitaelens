@@ -1,12 +1,14 @@
 package com.phrolova.vitaelensbackend.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
-@TableName("analysis_task")
+@TableName(value = "analysis_task", autoResultMap = true)
 public class AnalysisTask {
 
     @TableId(type = IdType.AUTO)
@@ -24,7 +26,8 @@ public class AnalysisTask {
 
     private Integer score;
 
-    private String resultJson;      // JSON 字段，存储为字符串
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> resultJson;      // JSON 字段，存储为字符串
 
     private String errorMessage;
 
