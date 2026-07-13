@@ -16,3 +16,9 @@ jwt:
   secret: ${JWT_SECRET:vitaelens-jwt-secret-key-change-in-production}
   # expiration: 86400000  # 24小时，单位毫秒
   expiration: 86400000000
+
+ai:
+  base-url: https://****
+  api-key: ${AI_API_KEY:my-api-key}
+  model: my-ai-model
+  timeout-seconds: 60

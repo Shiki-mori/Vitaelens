@@ -45,3 +45,20 @@
 [TaskResponse](../vitaelens-backend/src/main/java/com/phrolova/vitaelensbackend/dto/response/TaskResponse.java)  
 
 [AnalysisController](../vitaelens-backend/src/main/java/com/phrolova/vitaelensbackend/controller/AnalysisController.java)
+
+## 配置线程池
+
+[AsyncConfig](../vitaelens-backend/src/main/java/com/phrolova/vitaelensbackend/config/AsyncConfig.java)
+
+在主类添加 `@EnableAsync`。
+
+## 配置 AI 接口
+
+在 `application.yml` 中添加 AI 服务信息。
+
+获取ai服务。
+
+本项目选择 DeepSeek-V3 。
+
+进入deepseek官网<https://www.deepseek.com/en/>，选择access API。  
+API-keys-->新建API-key,命名为 `Vitaelens-ResumeAnalysis`。保存生成的key。
