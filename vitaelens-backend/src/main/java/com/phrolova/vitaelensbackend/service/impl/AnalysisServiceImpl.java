@@ -18,11 +18,13 @@ import com.phrolova.vitaelensbackend.mapper.AnalysisTaskMapper;
 import com.phrolova.vitaelensbackend.mapper.JobDescriptionMapper;
 import com.phrolova.vitaelensbackend.mapper.ResumeMapper;
 import com.phrolova.vitaelensbackend.service.AnalysisService;
+import com.phrolova.vitaelensbackend.service.CacheService;
 import com.phrolova.vitaelensbackend.util.HashUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 //import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +45,9 @@ public class AnalysisServiceImpl implements AnalysisService {
     private final AiClient aiClient;
     private final ObjectMapper objectMapper;
 
+    @Autowired
+    private CacheService cacheService;
+
     @Override
     public TaskResponse createTask(CreateAnalysisRequest request, Long userId) {
 
@@ -55,7 +60,14 @@ public class AnalysisServiceImpl implements AnalysisService {
         // 计算 hash ，用于缓存判断
         String inputHash = HashUtil.md5(resume.getParsedText() + "|" + job.getContent());
 
-        // 检查缓存：是否有相同输入的成功任务
+        // 先查Redis缓存
+        Object cachedResult = cacheService.getAnalysisResult(inputHash);
+        if (cachedResult != null) {
+            log.info("Redis 缓存命中：userId={}, hash={}", userId, inputHash);
+            return convertCachedToResponse(cachedResult, resume.getId(), job.getId());
+        }
+
+        // 检查数据库：是否有相同输入的成功任务
         LambdaQueryWrapper<AnalysisTask> cacheCheck = new LambdaQueryWrapper<>();
         cacheCheck.eq(AnalysisTask::getUserId, userId)
                 .eq(AnalysisTask::getInputHash, inputHash)
@@ -64,7 +76,9 @@ public class AnalysisServiceImpl implements AnalysisService {
                 .last("LIMIT 1");
         AnalysisTask cachedTask = taskMapper.selectOne(cacheCheck);
         if (cachedTask != null) {
-            log.info("任务缓存命中：userId={}, taskId={}, hash={}", userId, cachedTask.getId(), inputHash);
+            log.info("数据库缓存命中：userId={}, taskId={}, hash={}", userId, cachedTask.getId(), inputHash);
+            // 回填 Redis
+            cacheService.setAnalysisResult(inputHash, cachedTask.getResultJson());
             return toTaskResponse(cachedTask);
         }
 
@@ -121,12 +135,15 @@ public class AnalysisServiceImpl implements AnalysisService {
             // 校验必要字段
             validateResult(result);
 
-            // 更新任务
+            // 更新数据库
             task.setStatus("SUCCESS");
             task.setResultJson(result);
             task.setScore(((Number) result.getOrDefault("overallScore", 0)).intValue());
             task.setFinishedAt(LocalDateTime.now());
             taskMapper.updateById(task);
+
+            // 写入 Redis 缓存
+            cacheService.setAnalysisResult(task.getInputHash(), result);
 
             // 记录调用日志
             saveAiCallLog(task.getId(), "resume_analysis", "SUCCESS", null,
@@ -203,6 +220,38 @@ public class AnalysisServiceImpl implements AnalysisService {
         log.setErrorMessage(errorMessage);
         log.setDurationMs(durationMs);
         aiCallLogMapper.insert(log);
+    }
+
+    /**
+     * 将缓存中的结果转换为 TaskResponse
+     * @param cachedResult 缓存中的结果
+     * @param resumeId 简历ID
+     * @param jdId 岗位ID
+     * @return TaskResponse
+     */
+    private TaskResponse convertCachedToResponse(Object cachedResult, Long resumeId, Long jdId) {
+        TaskResponse response = new TaskResponse();
+        response.setResumeId(resumeId);
+        response.setJdId(jdId);
+        response.setStatus("SUCCESS");
+
+        if (cachedResult instanceof Map<?, ?> map) {
+            Map<String, Object> resultMap = objectMapper.convertValue(
+                    map,
+                    new TypeReference<>() {
+                    }
+            );
+            response.setResultJson(resultMap);
+
+            Object score = map.get("overallScore");
+            if (score instanceof Number) {
+                response.setScore(((Number) score).intValue());
+            }
+        }
+
+        response.setCreatedAt(LocalDateTime.now());
+        response.setFinishedAt(LocalDateTime.now());
+        return response;
     }
 
     private TaskResponse toTaskResponse(AnalysisTask task) {
