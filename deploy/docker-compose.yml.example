@@ -38,7 +38,7 @@ services:
       restart: unless-stopped
       environment:
         - SPRING_PROFILES_ACTIVE=prod
-        - SPRING_DATASOURCE_URL=LocalInfile=jdbc:mysql://mysql:3306/vitaelens?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+        - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/vitaelens?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
         - SPRING_DATASOURCE_USERNAME=${MYSQL_USER:-vitaelens}
         - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD:-vitaelens123}
         - SPRING_DATA_REDIS_HOST=redis

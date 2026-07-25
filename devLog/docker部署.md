@@ -42,7 +42,7 @@ docker compose logs -f backend
 # 验证部署
 
 访问：  
-前端：<http://localhost>  
+前端：<http://localhost:8080>  
 后端API：<http://localhost/api/auth/login>
 
 # 停止与清理
