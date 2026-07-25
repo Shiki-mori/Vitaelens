@@ -116,14 +116,24 @@ async function onLogin() {
   const valid = await loginFormRef.value?.validate().catch(() => false)
   if (!valid) return
   loginLoading.value = true
+  // #region agent log
+  fetch('http://127.0.0.1:7741/ingest/3ca358cf-e2c8-4ba3-9852-df7aac4b4abe',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2cebf6'},body:JSON.stringify({sessionId:'2cebf6',runId:'post-fix',hypothesisId:'C',location:'LoginView.vue:onLogin',message:'login attempt start',data:{usernameLen:loginForm.username.length,hasRedirect:!!route.query.redirect},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   try {
     await auth.login({
       username: loginForm.username,
       password: loginForm.password,
     })
+    // #region agent log
+    fetch('http://127.0.0.1:7741/ingest/3ca358cf-e2c8-4ba3-9852-df7aac4b4abe',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2cebf6'},body:JSON.stringify({sessionId:'2cebf6',runId:'post-fix',hypothesisId:'C',location:'LoginView.vue:onLogin-success',message:'login api resolved, navigating',data:{redirect:(route.query.redirect as string)||'/'},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     ElMessage.success('登录成功')
     const redirect = (route.query.redirect as string) || '/'
     await router.replace(redirect)
+  } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7741/ingest/3ca358cf-e2c8-4ba3-9852-df7aac4b4abe',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2cebf6'},body:JSON.stringify({sessionId:'2cebf6',runId:'post-fix',hypothesisId:'C',location:'LoginView.vue:onLogin-catch',message:'login failed before navigate',data:{errName:(err as Error)?.name,errMsg:String((err as Error)?.message||err).slice(0,200)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
   } finally {
     loginLoading.value = false
   }
@@ -133,16 +143,26 @@ async function onRegister() {
   const valid = await registerFormRef.value?.validate().catch(() => false)
   if (!valid) return
   registerLoading.value = true
+  // #region agent log
+  fetch('http://127.0.0.1:7741/ingest/3ca358cf-e2c8-4ba3-9852-df7aac4b4abe',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2cebf6'},body:JSON.stringify({sessionId:'2cebf6',runId:'post-fix',hypothesisId:'C',location:'LoginView.vue:onRegister',message:'register attempt start',data:{usernameLen:registerForm.username.length,hasEmail:!!registerForm.email},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   try {
     await auth.register({
       username: registerForm.username,
       password: registerForm.password,
       email: registerForm.email || undefined,
     })
+    // #region agent log
+    fetch('http://127.0.0.1:7741/ingest/3ca358cf-e2c8-4ba3-9852-df7aac4b4abe',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2cebf6'},body:JSON.stringify({sessionId:'2cebf6',runId:'post-fix',hypothesisId:'C',location:'LoginView.vue:onRegister-success',message:'register api resolved',data:{},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     ElMessage.success('注册成功，请登录')
     activeTab.value = 'login'
     loginForm.username = registerForm.username
     loginForm.password = ''
+  } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7741/ingest/3ca358cf-e2c8-4ba3-9852-df7aac4b4abe',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2cebf6'},body:JSON.stringify({sessionId:'2cebf6',runId:'post-fix',hypothesisId:'C',location:'LoginView.vue:onRegister-catch',message:'register failed',data:{errMsg:String((err as Error)?.message||err).slice(0,200)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
   } finally {
     registerLoading.value = false
   }
