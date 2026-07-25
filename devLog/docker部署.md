@@ -22,4 +22,34 @@
 
 ## 环境变量文件
 
-[.env](../)
+[.env](../deploy/.env)
+
+# 构建并启动
+
+在目录`/deploy/`执行：
+
+```bash
+docker compose up -d --build
+```
+
+等待构建完成，查看状态：
+
+```bash
+docker compose ps
+docker compose logs -f backend
+```
+
+# 验证部署
+
+访问：  
+前端：<http://localhost>  
+后端API：<http://localhost/api/auth/login>
+
+# 停止与清理
+
+```bash
+# 停止
+docker compose down
+# 停止并清理数据卷
+docker compose down -v
+```
