@@ -32,6 +32,7 @@ private/
 # deploy
 
 deploy/docker-compose.yml
+deploy/.env
 
 # cursorj
 

@@ -28,3 +28,45 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - ./redis-data:/data
+
+  #  backend
+  backend:
+      build:
+        context: ../vitaelens-backend
+        dockerfile: Dockerfile
+      container_name: vitaelens-backend
+      restart: unless-stopped
+      environment:
+        - SPRING_PROFILES_ACTIVE=prod
+        - SPRING_DATASOURCE_URL=LocalInfile=jdbc:mysql://mysql:3306/vitaelens?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+        - SPRING_DATASOURCE_USERNAME=${MYSQL_USER:-vitaelens}
+        - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD:-vitaelens123}
+        - SPRING_DATA_REDIS_HOST=redis
+        - AI_BASE_URL=${AI_BASE_URL}
+        - AI_API_KEY=${AI_API_KEY}
+        - AI_MODEL=${AI_MODEL:-my-ai-model}
+        - JWT_SECRET=${JWT_SECRET}
+      ports:
+        - "8080:8080"
+      volumes:
+        - uploads:/app/uploads/resumes
+      depends_on:
+        - mysql
+        - redis
+
+  #  frontend
+  frontend:
+      build:
+          context: ../vitaelens-frontend
+          dockerfile: Dockerfile
+      container_name: vitaelens-frontend
+      restart: unless-stopped
+      ports:
+        - "80:80"
+      depends_on:
+        - backend
+
+volumes:
+  mysql-data:
+  redis-data:
+  uploads:

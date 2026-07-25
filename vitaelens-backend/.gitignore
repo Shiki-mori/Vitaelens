@@ -6,6 +6,7 @@ target/
 
 ### application.yml ###
 /src/main/resources/application.yml
+/src/main/resources/application-prod.yml
 
 ### STS ###
 .apt_generated
@@ -34,5 +35,4 @@ build/
 
 ### VS Code ###
 .vscode/
-
 
