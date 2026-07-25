@@ -4,10 +4,10 @@ FROM node:lts-alpine AS builder
 #LABEL authors="phrolova"
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
-RUN pnpm build
+RUN npm run build
 
 # 运行阶段：用 Nginx 托管静态资源
 FROM nginx:alpine

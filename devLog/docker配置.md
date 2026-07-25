@@ -94,14 +94,14 @@ Error response from daemon: failed to resolve reference "docker.io/library/mysql
 
 docker拉取mysql镜像，访问docker hub时网络超时。
 
-给 Docker daemon 配置DNS：
+~~给 Docker daemon 配置DNS：~~
 
 ```bash
 cd /etc/docker
 sudo nano daemon.json
 ```
 
-在其中插入：
+~~在其中插入：~~
 
 ```json
 {

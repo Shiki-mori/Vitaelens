@@ -53,3 +53,10 @@ docker compose down
 # 停止并清理数据卷
 docker compose down -v
 ```
+
+# 为docker配置代理
+
+shell使用本地代理。但`dockerd`是systemd服务，没有继承代理，直连无法连接。
+
+参考 [docker配置.md](./docker配置.md)。
+

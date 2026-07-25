@@ -1,4 +1,4 @@
-#构建阶段
+# 构建阶段
 FROM eclipse-temurin:17-jdk-alpine AS builder
 
 #LABEL authors="phrolova"
@@ -6,14 +6,16 @@ FROM eclipse-temurin:17-jdk-alpine AS builder
 # 设置工作目录
 WORKDIR /app
 
-# 复制 Maven 项目文件
+# 复制 Maven Wrapper 与项目描述文件
 COPY pom.xml .
-COPY src ./src
+COPY mvnw .
 COPY .mvn ./.mvn
 
 # 给予执行权限
 RUN chmod +x mvnw
-# Maven 打包（-DskipTests 跳过测试）
+
+# 复制源码并打包（-DskipTests 跳过测试）
+COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # 运行阶段
