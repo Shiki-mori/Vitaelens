@@ -67,9 +67,10 @@ public class ResumeServiceImpl implements ResumeService {
 
         // Generate filename and Save file
         String savedName = FileUtil.generateFileName(originalFilename);
-        Path savePath = Paths.get(uploadConfig.getUploadDir(), savedName);
+        Path savePath = Paths.get(uploadConfig.getUploadDir(), savedName).toAbsolutePath().normalize();
         try {
-            file.transferTo(savePath.toFile());
+            Files.createDirectories(savePath.getParent());
+            file.transferTo(savePath);
         } catch (IOException e) {
             log.error("文件保存失败", e);
             throw new BizException(ErrorCode.FILE_ERROR, "文件保存失败");
