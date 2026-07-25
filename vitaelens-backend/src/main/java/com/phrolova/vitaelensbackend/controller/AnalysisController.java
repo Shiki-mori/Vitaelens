@@ -1,6 +1,8 @@
 package com.phrolova.vitaelensbackend.controller;
 
 import com.phrolova.vitaelensbackend.auth.UserContext;
+import com.phrolova.vitaelensbackend.common.LimitType;
+import com.phrolova.vitaelensbackend.common.RateLimit;
 import com.phrolova.vitaelensbackend.common.Result;
 import com.phrolova.vitaelensbackend.dto.request.CreateAnalysisRequest;
 import com.phrolova.vitaelensbackend.dto.response.TaskResponse;
@@ -29,6 +31,7 @@ public class AnalysisController {
      */
     @Operation(summary = "创建分析任务")
     @PostMapping("/tasks")
+    @RateLimit(limitType = LimitType.USER, windowSeconds = 60, maxRequests = 3, message = "简历分析请求过于频繁，每分钟最多 3 次")
     public Result<TaskResponse> createTask(@Valid @RequestBody CreateAnalysisRequest request) {
         Long userId = UserContext.getUserId();
         return Result.success(analysisService.createTask(request, userId));

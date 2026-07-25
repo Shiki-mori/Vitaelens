@@ -1,4 +1,6 @@
 package com.phrolova.vitaelensbackend.common;
 
-public class LimitType {
+public enum LimitType {
+    USER,
+    IP
 }

@@ -1,5 +1,7 @@
 package com.phrolova.vitaelensbackend.controller;
 
+import com.phrolova.vitaelensbackend.common.LimitType;
+import com.phrolova.vitaelensbackend.common.RateLimit;
 import com.phrolova.vitaelensbackend.common.Result;
 import com.phrolova.vitaelensbackend.dto.request.LoginRequest;
 import com.phrolova.vitaelensbackend.dto.request.RegisterRequest;
@@ -41,6 +43,7 @@ public class AuthController {
      */
     @Operation(summary = "用户登录")
     @PostMapping("/login")
+    @RateLimit(limitType = LimitType.IP, windowSeconds = 60, maxRequests = 10, message = "登录请求过于频繁，请 1 分钟后再试")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest request){
         LoginResponse response = authService.login(request);
         return Result.success(response);

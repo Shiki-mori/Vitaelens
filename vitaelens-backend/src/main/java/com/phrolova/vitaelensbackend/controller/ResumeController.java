@@ -1,6 +1,8 @@
 package com.phrolova.vitaelensbackend.controller;
 
 import com.phrolova.vitaelensbackend.auth.UserContext;
+import com.phrolova.vitaelensbackend.common.LimitType;
+import com.phrolova.vitaelensbackend.common.RateLimit;
 import com.phrolova.vitaelensbackend.common.Result;
 import com.phrolova.vitaelensbackend.dto.response.ResumeResponse;
 import com.phrolova.vitaelensbackend.service.ResumeService;
@@ -27,6 +29,7 @@ public class ResumeController {
      */
     @Operation(summary = "简历上传")
     @PostMapping("/upload")
+    @RateLimit(limitType = LimitType.USER, windowSeconds = 60, maxRequests = 5, message = "文件上传过于频繁，每分钟最多 5 次")
     public Result<ResumeResponse> upload(@RequestParam("file") MultipartFile file) {
         Long userId = UserContext.getUserId();
         ResumeResponse response = resumeService.uploadResume(file, userId);
