@@ -3,6 +3,14 @@
     <div class="toolbar">
       <el-button @click="router.push('/analysis')">返回列表</el-button>
       <el-button v-if="canRefresh" :loading="loading" @click="loadTask">刷新状态</el-button>
+      <el-button
+        v-if="canStartInterview"
+        type="primary"
+        :loading="startingInterview"
+        @click="onStartInterview"
+      >
+        开始模拟面试
+      </el-button>
     </div>
 
     <el-card v-if="task" shadow="never" class="status-card">
@@ -117,6 +125,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getAnalysisTask } from '@/api/analysis'
+import { createInterviewSession } from '@/api/interview'
 import type { TaskResponse } from '@/types/api'
 
 const route = useRoute()
@@ -124,6 +133,7 @@ const router = useRouter()
 
 const task = ref<TaskResponse | null>(null)
 const loading = ref(false)
+const startingInterview = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
 let pollCount = 0
 const MAX_POLL = 90
@@ -145,6 +155,25 @@ const canRefresh = computed(() => {
   const id = route.params.taskId
   return id !== 'cached' && !!id
 })
+
+const canStartInterview = computed(
+  () => task.value?.status === 'SUCCESS' && !!task.value?.id && !!task.value?.resultJson,
+)
+
+async function onStartInterview() {
+  if (!task.value?.id) {
+    ElMessage.warning('缓存命中的结果没有任务 ID，请从历史任务进入后再开始面试')
+    return
+  }
+  startingInterview.value = true
+  try {
+    const session = await createInterviewSession({ analysisTaskId: task.value.id })
+    ElMessage.success(`已生成 ${session.questionCount} 道面试题`)
+    await router.push(`/interviews/${session.id}`)
+  } finally {
+    startingInterview.value = false
+  }
+}
 
 const dimensionEntries = computed(() => {
   const scores = result.value?.dimensionScores

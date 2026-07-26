@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class SubmitAnswerRequest {
-    @NotNull(message = "问题ID不能为空")
+    /** 由路径参数注入，请求体可不传 */
     private Long questionId;
 
     @NotNull(message = "回答内容不能为空")

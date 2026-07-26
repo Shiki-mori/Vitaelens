@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Collection, DataAnalysis, Document, Right } from '@element-plus/icons-vue'
+import { ChatDotRound, Collection, DataAnalysis, Document } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
@@ -47,10 +47,10 @@ const entries = [
     icon: DataAnalysis,
   },
   {
-    title: '查看历史',
-    desc: '浏览历史任务与分析结果',
-    path: '/analysis',
-    icon: Right,
+    title: '模拟面试',
+    desc: '基于分析结果生成面试题并获取反馈',
+    path: '/interviews',
+    icon: ChatDotRound,
   },
 ]
 </script>

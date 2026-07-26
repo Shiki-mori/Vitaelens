@@ -84,3 +84,38 @@ export interface TaskResponse {
   createdAt?: string
   finishedAt?: string | null
 }
+
+export interface CreateInterviewRequest {
+  analysisTaskId: number
+}
+
+export interface InterviewSessionResponse {
+  id: number
+  analysisTaskId: number
+  questionCount: number
+  createdAt: string
+}
+
+export interface AnswerFeedbackJson {
+  accuracyScore?: number
+  completenessScore?: number
+  clarityScore?: number
+  overallFeedback?: string
+  improvements?: string[]
+  followUp?: string
+  [key: string]: unknown
+}
+
+export interface QuestionResponse {
+  id: number
+  question: string
+  answer?: string | null
+  feedbackJson?: AnswerFeedbackJson | null
+}
+
+export interface InterviewSessionDetailResponse {
+  id: number
+  analysisTaskId: number
+  createdAt: string
+  questions: QuestionResponse[]
+}

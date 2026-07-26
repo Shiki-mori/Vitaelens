@@ -38,6 +38,16 @@ const routes: RouteRecordRaw[] = [
         name: 'analysis-detail',
         component: () => import('@/views/AnalysisDetailView.vue'),
       },
+      {
+        path: 'interviews',
+        name: 'interviews',
+        component: () => import('@/views/InterviewListView.vue'),
+      },
+      {
+        path: 'interviews/:sessionId',
+        name: 'interview-session',
+        component: () => import('@/views/InterviewSessionView.vue'),
+      },
     ],
   },
 ]

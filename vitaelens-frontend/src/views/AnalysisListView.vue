@@ -60,7 +60,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="createdAt" label="创建时间" min-width="180" />
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
           <el-button
             link
@@ -69,6 +69,14 @@
             @click="router.push(`/analysis/${row.id}`)"
           >
             查看
+          </el-button>
+          <el-button
+            link
+            type="primary"
+            :disabled="row.status !== 'SUCCESS' || !row.id"
+            @click="router.push({ path: '/interviews', query: { analysisTaskId: String(row.id) } })"
+          >
+            面试
           </el-button>
         </template>
       </el-table-column>

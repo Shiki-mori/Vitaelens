@@ -28,14 +28,14 @@ public class InterviewController {
     }
 
     @GetMapping("/sessions/{id}")
-    public Result<InterviewSessionDetailResponse> getSessionDetail(@PathVariable Long sessionId) {
+    public Result<InterviewSessionDetailResponse> getSessionDetail(@PathVariable("id") Long sessionId) {
         Long userId = UserContext.getUserId();
         return Result.success(interviewService.getSessionDetail(sessionId, userId));
     }
 
     @PostMapping("/questions/{id}/answer")
     @RateLimit(limitType = LimitType.USER, maxRequests = 10, message = "回答提交过于频繁，请稍后再试")
-    public Result<InterviewSessionDetailResponse> submitAnswer(@PathVariable Long id,
+    public Result<InterviewSessionDetailResponse> submitAnswer(@PathVariable("id") Long id,
                                                                @Valid @RequestBody SubmitAnswerRequest request) {
         Long userId = UserContext.getUserId();
         request.setQuestionId(id);

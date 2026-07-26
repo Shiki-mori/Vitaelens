@@ -25,6 +25,10 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>简历分析</span>
         </el-menu-item>
+        <el-menu-item index="/interviews">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>模拟面试</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -58,10 +62,13 @@ const titleMap: Record<string, string> = {
   jobs: '岗位 JD',
   analysis: '简历分析',
   'analysis-detail': '分析结果',
+  interviews: '模拟面试',
+  'interview-session': '面试场次',
 }
 
 const activeMenu = computed(() => {
   if (route.path.startsWith('/analysis')) return '/analysis'
+  if (route.path.startsWith('/interviews')) return '/interviews'
   return route.path
 })
 
