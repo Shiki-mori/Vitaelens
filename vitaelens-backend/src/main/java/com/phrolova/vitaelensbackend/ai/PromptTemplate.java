@@ -1,5 +1,7 @@
 package com.phrolova.vitaelensbackend.ai;
 
+import java.util.Map;
+
 public class PromptTemplate {
 
     public static String getResumeAnalysisSystemPrompt() {
@@ -56,5 +58,77 @@ public class PromptTemplate {
 
                 请严格按照 JSON 格式返回分析结果。
                 """.formatted(resumeText, jdContent);
+    }
+
+    public static String getInterviewQuestionPrompt(){
+        return """
+                你是一个技术面试官，请根据候选人的简历和目标岗位，生成 5-8 个面试问题。
+                问题应该覆盖：项目经历追问、技术基础、场景题。
+                项目追问要具体到简历中提到的技术和实现细节，不要问泛泛的问题。
+                
+                返回 JSON 数组：
+                [
+                  {
+                    "category": "project" | "fundamental" | "scenario",
+                    "question": "问题内容",
+                    "focus": "考察要点"
+                  }
+                ]
+                
+                只返回 JSON 数组，不要包含其他文本。
+                """;
+    }
+
+    public static String buildInterviewQuestionMessage(
+            String resumeText, String jdContent, Map<String, Object> analysisResult){
+        return """
+                候选人简历：
+                %s
+                
+                目标岗位：
+                %s
+                
+                简历分析结果：
+                重点关注方向：%s
+                技能缺口：%s
+                
+                请生成面试题。
+                """.formatted(
+                        resumeText,
+                        jdContent,
+                        analysisResult.getOrDefault("interviewFocus",""),
+                        analysisResult.getOrDefault("skillGaps","")
+        );
+    }
+
+    public static String getAnswerFeedbackPrompt(){
+        return """
+                你是一个技术面试官，请评价候选人对面试问题的回答。
+                从准确性、完整性、表达清晰度三个维度评价，给出改进建议。
+    
+                返回 JSON：
+                {
+                  "accuracyScore": 80,
+                  "completenessScore": 70,
+                  "clarityScore": 75,
+                  "overallFeedback": "整体评价",
+                  "improvements": ["改进建议1", "改进建议2"],
+                  "followUp": "可能的追问"
+                }
+    
+                只返回 JSON，不要包含其他文本。
+                """;
+    }
+
+    public static String buildAnswerFeedbackMessage(String question, String answer){
+        return """
+                请评价以下面试问题与候选人回答。
+                
+                面试问题：
+                %s
+                
+                候选人回答：
+                %s
+                """.formatted(question, answer);
     }
 }
