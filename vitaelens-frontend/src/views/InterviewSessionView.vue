@@ -61,7 +61,7 @@
         <div class="actions">
           <el-button
             type="primary"
-            :loading="submittingId === item.id"
+            :loading="submittingIds.has(item.id)"
             :disabled="!draftAnswers[item.id]?.trim()"
             @click="onSubmit(item.id)"
           >
@@ -130,7 +130,7 @@ const router = useRouter()
 
 const session = ref<InterviewSessionDetailResponse | null>(null)
 const loading = ref(false)
-const submittingId = ref<number | null>(null)
+const submittingIds = ref<Set<number>>(new Set())
 const draftAnswers = reactive<Record<number, string>>({})
 
 const answeredCount = computed(
@@ -175,7 +175,8 @@ async function onSubmit(questionId: number) {
     return
   }
 
-  submittingId.value = questionId
+  submittingIds.value.add(questionId)
+  submittingIds.value = new Set(submittingIds.value)
   try {
     const detail = await submitInterviewAnswer(questionId, answer)
     session.value = detail
@@ -184,7 +185,8 @@ async function onSubmit(questionId: number) {
     }
     ElMessage.success('评价已生成')
   } finally {
-    submittingId.value = null
+    submittingIds.value.delete(questionId)
+    submittingIds.value = new Set(submittingIds.value)
   }
 }
 
