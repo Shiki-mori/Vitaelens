@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # 构建阶段
 FROM eclipse-temurin:17-jdk-alpine AS builder
 

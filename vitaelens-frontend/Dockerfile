@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # 构建阶段
 FROM node:lts-alpine AS builder
 
