@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # 构建阶段
 FROM node:lts-alpine AS builder
 
@@ -5,7 +6,8 @@ FROM node:lts-alpine AS builder
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 COPY . .
 RUN npm run build
 

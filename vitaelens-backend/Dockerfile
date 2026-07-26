@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # 构建阶段
 FROM eclipse-temurin:17-jdk-alpine AS builder
 
@@ -14,9 +15,14 @@ COPY .mvn ./.mvn
 # 给予执行权限
 RUN chmod +x mvnw
 
+# 依赖层：pom 不变时可复用；cache 跨构建保留 .m2
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw dependency:go-offline -B
+
 # 复制源码并打包（-DskipTests 跳过测试）
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw clean package -DskipTests
 
 # 运行阶段
 FROM eclipse-temurin:17-jre-alpine
