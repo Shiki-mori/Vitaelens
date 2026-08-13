@@ -48,7 +48,9 @@
 ```text
 Vitaelens/
 ├── AGENTS.md
-├── database/sql/schema.sql          -- 数据库建表脚本
+├── database/
+│   ├── sql/schema.sql               -- 数据库建表脚本
+│   └── 数据库设计.md                -- 数据库设计文档（字段 / 索引 / ER）
 ├── deploy/
 │   ├── docker-compose.yml           -- 一键部署编排
 │   ├── docker-compose.yml.example
@@ -358,7 +360,7 @@ AI 调用超时 / JSON 解析失败 / 字段缺失
 
 ## 数据库设计
 
-已实现以下表（见 `database/sql/schema.sql`）：
+已实现以下表（见 `database/sql/schema.sql`）。字段说明、索引、ER 关系与状态约定见 [`database/数据库设计.md`](database/数据库设计.md)。
 
 | 表名 | 说明 |
 |----------------------|----------|
