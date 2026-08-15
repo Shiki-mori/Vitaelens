@@ -143,6 +143,58 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
+`docker info` 能看到 HTTP Proxy 后，daemon 侧的 `docker pull` 会走代理。  
+但 `docker compose build` 仍可能超时，报错类似：
+
+```text
+failed to authorize: DeadlineExceeded: failed to fetch anonymous token:
+Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fpython%3Apull&service=registry.docker.io":
+dial tcp [2a03:2880:...:face:b00c:...]:443: i/o timeout
+```
+
+失败点在拉基础镜像元数据（如 `python:3.12-slim`），还没进 Dockerfile 里的 `pip install`。  
+`dial tcp [IPv6]:443` 说明 **本机 CLI / Buildx 直连了 Hub**，没有走 `127.0.0.1:8966`。
+
+原因：`docker compose build` 默认走 BuildKit。取 `auth.docker.io` token 由 **当前终端里的 docker CLI** 发起，不读 `docker.service` 的 `Environment=`。  
+IPv6 还可能解析到错误地址（`face:b00c` 是 Facebook 段，不是 Docker Hub）。
+
+不要把 `docker.io` / `auth.docker.io` 写进 `NO_PROXY`，这些必须走代理。  
+给 `NO_PROXY` 加 Compose 服务名（如 `agent`）也解决不了拉镜像；容器互访本来就不走 daemon 代理。
+
+在 **执行 build 的同一个终端** 先导出代理，再构建：
+
+```bash
+export HTTP_PROXY=http://127.0.0.1:8966
+export HTTPS_PROXY=http://127.0.0.1:8966
+export NO_PROXY=localhost,127.0.0.1
+export BUILDKIT_NO_CLIENT_TOKEN=1
+
+cd <compose所在目录>
+docker compose build
+```
+
+`BUILDKIT_NO_CLIENT_TOKEN=1` 让取 token 改走 BuildKit/daemon（daemon 已配代理）。  
+换终端会丢失 `export`，需重做或写入 `~/.bashrc`。
+
+过了 `FROM` 之后，若 `RUN pip install` 仍超时：构建容器里的 `127.0.0.1:8966` 不是宿主机代理。需给 build 传网关地址（常见 `http://172.17.0.1:8966`），且代理软件要允许 docker0 访问，不能只绑 `127.0.0.1`。比如：
+
+```bash
+export HTTP_PROXY=http://127.0.0.1:8966 HTTPS_PROXY=http://127.0.0.1:8966
+docker compose -f docker-compose.yml.example --env-file .env.example build agent \
+  --build-arg HTTP_PROXY=http://172.17.0.1:8966 \
+  --build-arg HTTPS_PROXY=http://172.17.0.1:8966 \
+  --build-arg NO_PROXY=localhost,127.0.0.1
+```
+
+若希望以后每个新终端都带上代理，把下面四行写进 ~/.bashrc，保存后执行 source ~/.bashrc：
+
+```bash
+export HTTP_PROXY=http://127.0.0.1:8966
+export HTTPS_PROXY=http://127.0.0.1:8966
+export NO_PROXY=localhost,127.0.0.1
+export BUILDKIT_NO_CLIENT_TOKEN=1
+```
+
 # docker管理
 
 docker使用有两种方法：docker compose 和 独立原生 docker 命令。  
