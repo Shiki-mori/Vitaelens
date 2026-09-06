@@ -128,9 +128,15 @@ public class AnalysisServiceImpl implements AnalysisService {
             String aiResponse = aiClient.chatJson(systemPrompt, userMessage);
 
             // 解析 JSON
-            Map<String, Object> result = objectMapper.readValue(aiResponse,
-                    new TypeReference<>() {
-                    });
+            Map<String, Object> result;
+            try {
+                result = objectMapper.readValue(aiResponse, new TypeReference<>() {
+                });
+            } catch (Exception parseEx) {
+                log.error("分析结果 JSON 解析失败: taskId={}, contentLength={}",
+                        taskId, aiResponse == null ? 0 : aiResponse.length());
+                throw new BizException(ErrorCode.AI_ERROR, "AI 返回结果无法解析，请重试");
+            }
 
             // 校验必要字段
             validateResult(result);
